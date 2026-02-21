@@ -2,15 +2,13 @@
 #include <cmath>
 #include <mlpack/core.hpp>
 #include <mlpack/methods/linear_regression/linear_regression.hpp>
-#include <mlpack/methods/lars/lars.hpp> // The LARS (Lasso) Algorithm
+#include <mlpack/methods/lars/lars.hpp>
 
 using namespace arma;
 using namespace std;
 
 int main() {
-    cout << "=========================================" << endl;
     cout << " v3.0 Elastic Net Hybrid Engine " << endl;
-    cout << "=========================================" << endl;
 
     mat dataset;
     bool loaded = mlpack::data::Load("../data/clean_gurugram_data.csv", dataset, true);
@@ -23,8 +21,7 @@ int main() {
     cout << "[INFO] Training Ridge Regressor (L2 Penalty)..." << endl;
     mlpack::LinearRegression lr(dataset, responses, 0.1);
 
-    // 2. TRAIN MODEL B: LARS / Lasso Regression (L1 Penalty)
-    // LARS uses Cholesky decomposition to perfectly handle sparse categorical features
+    // 2. TRAIN MODEL B: Lasso Regression (L1 Penalty)
     cout << "[INFO] Training LARS Regressor (L1 Feature Selection)..." << endl;
     bool useCholesky = true;
     double lambda1 = 0.1; // L1 Penalty
@@ -34,8 +31,6 @@ int main() {
 
     cout << "[SUCCESS] Elastic Net Ensemble Trained Successfully!" << endl;
 
-    // --- LIVE INFERENCE V3.0 ---
-    // Target: Golf Course Road Penthouse (9 Features)
     mat newProperty(9, 1);
     newProperty(0, 0) = 5.0;     // Location ID 
     newProperty(1, 0) = 4200.0;  // SqFt
@@ -47,7 +42,6 @@ int main() {
     newProperty(7, 0) = 1.0;     // Penthouse
     newProperty(8, 0) = 1.0;     // Premium View
 
-    // Get Predictions from both models
     rowvec lr_pred, lars_pred;
     lr.Predict(newProperty, lr_pred);
     lars.Predict(newProperty, lars_pred);
@@ -55,10 +49,9 @@ int main() {
     long ridge_price = (long)lr_pred[0];
     long lasso_price = (long)lars_pred[0];
 
-    // THE ENSEMBLE: 50% Ridge, 50% Lasso (Elastic Net Blending)
+    //50% Ridge, 50% Lasso
     long final_ensemble_price = (ridge_price + lasso_price) / 2;
 
-    // Financial Analysis
     double r = 0.12 / 12.0;
     int m = 5 * 12;
     double sip = final_ensemble_price / (double)m; 
