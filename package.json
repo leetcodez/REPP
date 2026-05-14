@@ -1,0 +1,13 @@
+{
+  "name": "repp-microservice",
+  "version": "5.0.0",
+  "description": "Real Estate Price Predictor Microservice",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
+}
