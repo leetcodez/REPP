@@ -1,46 +1,62 @@
-#include <iostream>
-#include <iomanip>
-#include <cmath>
-#include <stdexcept>
-#include <string>
-#include <cstdlib>
-#include <mlpack/core.hpp>
-#include <mlpack/core/data/split_data.hpp>
-#include <mlpack/methods/linear_regression/linear_regression.hpp>
-#include <mlpack/methods/lars/lars.hpp>
-#include <mlpack/methods/bayesian_linear_regression/bayesian_linear_regression.hpp>
+{
+  "name": "repp-microservice",
+  "version": "5.0.0",
+  "description": "Real Estate Price Predictor Microservice",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
+}dillo-dev \
+    python3 \
+    python3-pip \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-using namespace arma;
-using namespace std;
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
 
-class RealEstateEnsemble {
-private:
-    mlpack::LinearRegression ols;
-    mlpack::LinearRegression ridge;
-    mlpack::LARS lasso;
-    mlpack::LARS elastic_net;
-    mlpack::BayesianLinearRegression blr;
-    
-    vec feature_means;
-    vec feature_stdevs;
+# Install Python dependencies for data cleaning
+RUN pip3 install pandas numpy
 
-    // Z-Score Normalization
-    void scaleData(mat& data) {
-        if (feature_means.is_empty() || feature_stdevs.is_empty()) {
-            throw std::logic_error("Scaler not initialized. Call train() first.");
+# Set working directory
+WORKDIR /app
+
+# Copy all project files into the container
+COPY . .
+
+# Run the Python data cleaning script to generate data matrices
+RUN python3 clean_data.py
+
+# Compile the C++ ML engine binary
+RUN mkdir -p build && cd build && cmake .. && make
+
+# Install Node.js dependencies
+RUN npm install
+
+# Expose API port
+EXPOSE 3000
+
+# Start the Node.js Express server
+CMD ["node", "server.js"]
+m(), 10);
+        if (isNaN(price)) {
+            console.error(`Invalid output from predictor: ${stdout}`);
+            return res.status(500).json({ error: 'Invalid prediction result.' });
         }
-        for (size_t i = 0; i < data.n_rows; ++i) {
-            if (feature_stdevs(i) > 0) {
-                data.row(i) = (data.row(i) - feature_means(i)) / feature_stdevs(i);
-            }
-        }
-    }
+        
+        res.json({ price });
+    });
+});
 
-public:
-    RealEstateEnsemble() : lasso(true, 0.1, 0.0), elastic_net(true, 0.1, 0.1), blr(true) {}
-
-    void train(mat trainData, const rowvec& trainResponses) {
-        // Compute statistics for each feature (row)
+app.listen(PORT, () => {
+    console.log(`REPP Microservice running on port ${PORT}`);
+});
+ each feature (row)
         feature_means = mean(trainData, 1);
         feature_stdevs = stddev(trainData, 0, 1);
 
@@ -122,3 +138,4 @@ int main(int argc, char* argv[]) {
     
     return 0;
 }
+
